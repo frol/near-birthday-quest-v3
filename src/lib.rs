@@ -18,10 +18,7 @@ impl Quest {
     #[payable]
     pub fn new(operator_account_id: near_sdk::AccountId) -> Self {
         let mut balances = near_sdk::collections::LookupMap::new(b"b".to_vec());
-        balances.insert(
-            &operator_account_id,
-            &near_sdk::env::attached_deposit(),
-        );
+        balances.insert(&operator_account_id, &near_sdk::env::attached_deposit());
         Self { balances }
     }
 
@@ -45,12 +42,14 @@ impl Quest {
         amount: near_sdk::json_types::U128,
     ) {
         let sender_account_id = near_sdk::env::signer_account_id();
-        let sender_balance = self.balances.get(&sender_account_id).unwrap_or(0);
+        let sender_balance = self.balances.get(&sender_account_id).expect(
+            "Your account must have some balance on the contract before you can transfer tokens",
+        );
         require!(amount.0 <= sender_balance, "Not enough balance to transfer");
         self.balances
             .insert(&sender_account_id, &(sender_balance - amount.0));
 
-        let receiver_balance = self.balances.get(&sender_account_id).unwrap_or(0);
+        let receiver_balance = self.balances.get(&receiver_account_id).unwrap_or(0);
         self.balances
             .insert(&receiver_account_id, &(receiver_balance + amount.0));
     }
